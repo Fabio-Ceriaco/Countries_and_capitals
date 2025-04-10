@@ -45,7 +45,17 @@ class MainController extends Controller
 
         $quiz = $this->prepareQuiz($total_questions);
 
-        dd($quiz);
+        // store quiz in session
+
+        session([
+            'quiz' => $quiz,
+            'total_questions' => $total_questions,
+            'current_question' => 1,
+            'correct_answers' => 0,
+            'wrong_answers' => 0,
+        ]);
+
+        return redirect()->route('game');
     }
 
     private function prepareQuiz($total_questions): array
@@ -93,5 +103,28 @@ class MainController extends Controller
         };
 
         return $questions;
+    }
+
+    public function game(): View
+    {
+
+        $quiz = session('quiz');
+        $total_questions = session('total_questions');
+        $current_question = session('current_question') - 1;
+
+        // prepare answers to show in view
+        $answers = $quiz[$current_question]['wrong_answers'];
+        $answers[] = $quiz[$current_question]['correct_answer'];
+
+        shuffle($answers);
+
+
+
+        return view('game', [
+            'country' => $quiz[$current_question]['country'],
+            'total_questions' => $total_questions,
+            'current_question' => $current_question,
+            'answers' => $answers,
+        ]);
     }
 }
