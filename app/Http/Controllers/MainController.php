@@ -15,9 +15,83 @@ class MainController extends Controller
         $this->app_data = require(app_path('app_data.php'));
     }
 
-    public function showData()
+    public function startGame(): View
+    {
+        return view('home');
+    }
+
+    public function prepareGame(Request $request)
+    {
+        //validate request
+        $request->validate(
+
+            [
+                'total_questions' => ['required', 'integer', 'min:3', 'max:30'],
+            ],
+            [
+                'total_questions.required' => 'The questions number is required.',
+                'total_questions.integer' => 'The questions number should be an integer.',
+                'total_questions.min' => 'Should be a minimum of :min questions.',
+                'total_questions.max' => 'Should be a maximum of :max questions.',
+            ]
+
+        );
+
+        // get total questions
+
+        $total_questions = intval($request->input('total_questions'));
+
+        // prepare all the quiz structure
+
+        $quiz = $this->prepareQuiz($total_questions);
+
+        dd($quiz);
+    }
+
+    private function prepareQuiz($total_questions): array
     {
 
-        return response()->json($this->app_data);
+        $questions = [];
+
+        $total_countries = count($this->app_data);
+
+
+
+        // create countries index for unique questions
+
+        $indexes = range(0, $total_countries - 1);
+
+        shuffle($indexes);
+
+        $indexes = array_slice($indexes, 0, $total_questions);
+
+        // create array of questions
+        $question_number = 1;
+        foreach ($indexes as $index) {
+
+            $question['question_number'] = $question_number++;
+            $question['country'] = $this->app_data[$index]['country'];
+            $question['correct_answer'] = $this->app_data[$index]['capital'];
+
+            // wrong answers
+            $other_capitals = array_column($this->app_data, 'capital');
+
+            // remove correct answer
+
+            $other_capitals = array_diff($other_capitals, [$question['correct_answer']]);
+
+            //shuffle the wrong answer
+
+            shuffle($other_capitals);
+
+            $question['wrong_answers'] = array_slice($other_capitals, 0, 3);
+
+            // store answer result
+            $question['correct'] = null;
+
+            $questions[] = $question;
+        };
+
+        return $questions;
     }
 }

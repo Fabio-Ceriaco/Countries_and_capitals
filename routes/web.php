@@ -4,7 +4,7 @@ use App\Http\Controllers\MainController;
 use Illuminate\Support\Facades\Route;
 use PhpParser\Node\Stmt\Return_;
 
-Route::view('/', 'home');
+// Start Game
 
-
-Route::get('/show_data', [MainController::class, 'showData']);
+Route::get('/', [MainController::class, 'startGame'])->name('startGame');
+Route::post('/prepareGame', [MainController::class, 'prepareGame'])->name('prepare_game');
